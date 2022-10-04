@@ -1,6 +1,4 @@
-import { useState } from 'react';
-import './App.css';
-
+import { useState, useEffect } from "react";
 const Patterns = [
   [0, 1, 2],
   [3, 4, 5],
@@ -13,45 +11,70 @@ const Patterns = [
 ];
 
 const initialValue = ["", "", "", "", "", "", "", "", ""];
+const Xo = () => {
+  const [values, setValues] = useState(initialValue);
+  const [player, setPlayer] = useState("O");
+  const [info, setInfo] = useState({ winner: "none", state: "none" });
 
-  function TicTac() {
-    
-    const [state, setState] = useState([
-      ['', '', ''],
-      ['','',''],
-      ['', '', ''],
- ]);
+  useEffect(() => {
+    checkWin();
+    if (player === "X") setPlayer("O");
+    else setPlayer("X");
+  }, [values]);
 
-   const [player,setPlayer]=useState('x')
-
-   const handleClick = (rowIndex,cellIndex) => {
-    
-      let cloneBoard = [...state];
-      cloneBoard[rowIndex][cellIndex]=player
-      setState(cloneBoard) 
-      setPlayer((prev)=> prev==='x' ? "o":"x")
-
+  useEffect(() => {
+    if (info.state !== "none") {
+      alert(`Win: ${info.winner}`);
+      setValues(initialValue);
     }
-    const CellData = ({ num }) => {
-      return <td onClick={() => handleClick(num)}>{state[num]}</td>;
-    };
-    return (
+    const isFull = values.every((item) => item !== "");
+    if (isFull && info.state === "none") {
+      console.log("full no winner");
+      alert("No winner!!!");
+      setValues(initialValue);
+    }
+  }, [info]);
 
-      <div className='container'>
-        <table>
-          Game :{player}
-          <tbody>
-            {state.map((row,rowIndex)=>(
-              <tr>
-                {row.map((cell,cellIndex)=>(
-                  <td onClick={()=>handleClick(rowIndex,cellIndex)}>{cell}</td>
-                ))}
-              </tr>
-            ) )}
-          </tbody>
-        </table>
-      </div>
-    );
+  const handleClick = (cell) => {
+    if (values[cell] !== "") return;
+    const cloneArr = values.map((val, idx) => {
+      if (idx === cell && val === "") {
+        return player;
+      }
+      return val;
+    });
+    setValues(cloneArr);
   };
 
-  export default TicTac;
+  const checkWin = () => {
+    Patterns.forEach((currPattern) => {
+      const firstPlayer = values[currPattern[0]];
+      if (firstPlayer === "") return;
+      let foundWinningPattern = true;
+      currPattern.forEach((idx) => {
+        if (values[idx] !== firstPlayer) {
+          foundWinningPattern = false;
+        }
+      });
+      if (foundWinningPattern) {
+        setInfo({ winner: player, state: "Won" });
+      }
+    });
+  };
+
+  return (
+    <div className="container">
+      {values.map((cell, cellIndex) => (
+        <div
+          className="cell"
+          key={String("index" + cellIndex)}
+          onClick={() => handleClick(cellIndex)}
+        >
+          {cell}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default Xo;
